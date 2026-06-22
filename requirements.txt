@@ -1,0 +1,12 @@
+pandas
+numpy
+requests
+openpyxl
+python-dotenv
+SQLAlchemy
+streamlit
+plotly
+fastapi
+uvicorn
+pytest
+httpx

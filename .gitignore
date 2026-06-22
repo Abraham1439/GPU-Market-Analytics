@@ -1,0 +1,24 @@
+# Entorno virtual
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Variables de entorno
+.env
+
+# Bases de datos generadas
+data/database/*.db
+data/processed/*.csv
+data/processed/*.xlsx
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
