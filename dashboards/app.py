@@ -25,7 +25,7 @@ def load_data() -> pd.DataFrame:
     if not DB_PATH.exists():
         st.error(
             "No se encontró la base de datos final. "
-            "Ejecuta primero: python etl/pipeline.py"
+            "Ejecuta primero: python -m etl.pipeline"
         )
         return pd.DataFrame()
 

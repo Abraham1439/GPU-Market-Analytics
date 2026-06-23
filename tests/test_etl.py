@@ -2,6 +2,8 @@ from pathlib import Path
 import sqlite3
 
 import pandas as pd
+import requests
+import pytest
 
 from etl.extract import extract_gpu_csv, extract_inventory_db, extract_exchange_rate
 from etl.transform import normalize_gpu_name, transform_data
@@ -42,7 +44,7 @@ def test_normalize_gpu_name():
     name = "NVIDIA GeForce RTX 4070 Ti"
     normalized = normalize_gpu_name(name)
 
-    assert normalized == "geforce rtx 4070 ti"
+    assert normalized == "rtx 4070 ti"
 
 
 def test_pipeline_creates_final_files():
@@ -108,3 +110,54 @@ def test_validate_final_dataset_accepts_valid_dataset():
         df = pd.read_sql_query("SELECT * FROM gpu_analytics", conn)
 
     validate_final_dataset(df)
+
+
+def test_validate_final_dataset_rejects_empty_dataframe():
+    """
+    Verifica que la validación rechace un dataset vacío.
+    """
+    empty_df = pd.DataFrame(columns=["sku", "marca", "modelo"])
+
+    with pytest.raises(ValueError):
+        validate_final_dataset(empty_df)
+
+
+def test_transform_data_handles_empty_inputs():
+    """
+    Verifica que la transformación no falle ante un DataFrame vacío de entrada.
+    """
+    empty_csv = pd.DataFrame(columns=["manufacturer", "productName", "releaseYear"])
+    inventory = pd.DataFrame(columns=["sku", "marca", "modelo", "anio_lanzamiento"])
+    api = pd.DataFrame()
+
+    with pytest.raises(ValueError):
+        transform_data(empty_csv, inventory, api, exchange_rate=950.0)
+
+def test_extract_exchange_rate_uses_fallback_on_api_failure(monkeypatch):
+    """
+    Caso 'API sin respuesta': si la API del dólar falla, debe usar el
+    valor de respaldo en vez de lanzar una excepción.
+    """
+    import etl.extract as extract_module
+
+    def fake_get(*args, **kwargs):
+        raise requests.RequestException("API caída (simulada)")
+
+    monkeypatch.setattr(extract_module.requests, "get", fake_get)
+
+    dolar = extract_exchange_rate()
+
+    assert dolar == 950.0
+
+
+def test_extract_gpu_csv_raises_on_missing_file(monkeypatch):
+    """
+    Caso 'error de lectura de archivos': si el CSV no existe,
+    extract_gpu_csv debe lanzar FileNotFoundError.
+    """
+    import etl.extract as extract_module
+
+    monkeypatch.setattr(extract_module, "GPU_CSV_PATH", Path("ruta/que/no/existe.csv"))
+
+    with pytest.raises(FileNotFoundError):
+        extract_gpu_csv()

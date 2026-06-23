@@ -129,7 +129,7 @@ pytest -v
 Resultado esperado:
 
 ```text
-13 passed
+17 passed
 ```
 
 ## 8. Despliegue con Docker

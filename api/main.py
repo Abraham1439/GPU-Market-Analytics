@@ -23,7 +23,7 @@ def load_data() -> pd.DataFrame:
     if not DB_PATH.exists():
         raise HTTPException(
             status_code=404,
-            detail="No se encontró la base de datos final. Ejecuta primero: python etl/pipeline.py"
+            detail="No se encontró la base de datos final. Ejecuta primero: python -m etl.pipeline"
         )
 
     try:
@@ -59,7 +59,8 @@ def root() -> dict:
             "/resumen",
             "/marcas",
             "/top-precios",
-            "/inventario"
+            "/inventario",
+            "/gamas"
         ]
     }
 

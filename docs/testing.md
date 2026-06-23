@@ -80,7 +80,7 @@ pytest -v
 Resultado esperado:
 
 ```text
-13 passed
+17 passed
 ```
 
 Durante la ejecución puede aparecer una advertencia relacionada con `TestClient` o `httpx`. Esta advertencia no afecta el funcionamiento del proyecto mientras las pruebas aparezcan como aprobadas.

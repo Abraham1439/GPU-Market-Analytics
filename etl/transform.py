@@ -23,10 +23,8 @@ def normalize_gpu_name(name: str) -> str:
         return ""
 
     name = str(name).lower()
-    name = name.replace("nvidia", "")
-    name = name.replace("amd", "")
-    name = name.replace("ati", "")
-    name = name.replace("intel", "")
+    for marca in ["nvidia", "amd", "ati", "intel", "geforce", "radeon"]:
+        name = name.replace(marca, "")
     name = re.sub(r"[^a-z0-9\s]", " ", name)
     name = re.sub(r"\s+", " ", name).strip()
 
@@ -202,11 +200,13 @@ def prepare_gpu_api(df_api: pd.DataFrame) -> pd.DataFrame:
     ]
 
     possible_price_columns = [
+        "MSRP (USD)",
+        "MSRP USD",
+        "MSRP",
+        "msrp",
         "Release Price (USD)",
         "Release Price",
         "release_price",
-        "MSRP",
-        "msrp",
         "Launch Price",
         "Price",
         "price"
@@ -266,7 +266,8 @@ def prepare_gpu_api(df_api: pd.DataFrame) -> pd.DataFrame:
     df_result["modelo_normalizado"] = df_result["modelo_api"].apply(normalize_gpu_name)
 
     if price_col:
-        df_result["precio_msrp_usd"] = clean_numeric_column(df[price_col])
+        precios = df[price_col].astype(str).str.replace(r"[\$,]", "", regex=True).str.strip()
+        df_result["precio_msrp_usd"] = pd.to_numeric(precios, errors="coerce")
     else:
         logging.warning("No se encontró columna de precio MSRP en API.")
         df_result["precio_msrp_usd"] = np.nan
