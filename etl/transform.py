@@ -33,9 +33,24 @@ def normalize_gpu_name(name: str) -> str:
 
 def clean_numeric_column(series: pd.Series) -> pd.Series:
     """
-    Convierte una columna a numérica eliminando caracteres no válidos.
+    Convierte una columna a numérica limpiando símbolos, comas,
+    unidades de medida y texto adicional.
+
+    Ejemplos:
+    "$249" -> 249
+    "$1,199" -> 1199
+    "170 W" -> 170
+    "12.74 TFLOPS" -> 12.74
     """
-    return pd.to_numeric(series, errors="coerce")
+    cleaned = (
+        series.astype(str)
+        .str.replace(r"[\$,]", "", regex=True)
+        .str.replace(r"[^0-9.\-]", "", regex=True)
+        .replace("", np.nan)
+        .replace("nan", np.nan)
+    )
+
+    return pd.to_numeric(cleaned, errors="coerce")
 
 
 def prepare_csv_specs(df_csv: pd.DataFrame) -> pd.DataFrame:

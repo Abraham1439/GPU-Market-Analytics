@@ -288,7 +288,7 @@ Valida que el endpoint entregue información operativa del inventario.
 En la ejecución local se obtuvo el siguiente resultado:
 
 ```text
-13 passed
+17 passed
 ```
 
 Esto indica que las pruebas del ETL y de la API se ejecutaron correctamente.
@@ -304,7 +304,7 @@ pytest -v
 donde se vea el resultado:
 
 ```text
-13 passed
+17 passed
 ```
 
 También se puede mencionar que las pruebas validan tanto el procesamiento de datos como el funcionamiento de los endpoints principales.

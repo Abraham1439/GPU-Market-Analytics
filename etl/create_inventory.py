@@ -97,9 +97,13 @@ def create_inventory_dataframe(df_gpus: pd.DataFrame, sample_size: int = 120) ->
 
     # Filtro de GPUs de consumidor de escritorio (las que una tienda real vende).
     patron_consumo = r"GeForce (?:GTX|RTX|GT) |Radeon (?:RX|HD|R9|R7) "
-    patron_excluir = r"Mobile|OEM|Quadro|FirePro|Tesla|Instinct|IGP|MXM|Xbox|Laptop|Embedded|Max-Q"
+    patron_excluir = (
+    r"Mobile|Mobility|OEM|Quadro|FirePro|Tesla|Instinct|IGP|MXM|Xbox|Laptop|"
+    r"Embedded|Max-Q|Mac Edition|All-in-Wonder"
+)
     df_base = df_base[df_base["productName"].str.contains(patron_consumo, regex=True, na=False)]
     df_base = df_base[~df_base["productName"].str.contains(patron_excluir, regex=True, na=False)]
+    df_base = df_base[~df_base["productName"].str.contains(r"\b\d{3,4}M\b", regex=True, na=False)]
     df_base = df_base[df_base["releaseYear"] >= 2008]
 
     # Siembra API-aware: priorizamos modelos con precio de referencia conocido.
