@@ -3,10 +3,10 @@ import os
 
 from dotenv import load_dotenv
 
-from create_inventory import main as create_inventory_main
-from extract import extract_all_sources
-from transform import transform_data
-from load import load_final_dataset
+from etl.create_inventory import main as create_inventory_main
+from etl.extract import extract_all_sources
+from etl.transform import transform_data
+from etl.load import load_final_dataset
 
 
 load_dotenv()

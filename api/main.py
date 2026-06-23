@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException, Query
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 DB_PATH = BASE_DIR / "data" / "database" / "gpu_market_analytics.db"
+TABLE_NAME = "gpu_analytics"
 
 app = FastAPI(
     title="GPU Market Analytics API",
@@ -27,7 +28,7 @@ def load_data() -> pd.DataFrame:
 
     try:
         with sqlite3.connect(DB_PATH) as conn:
-            df = pd.read_sql_query("SELECT * FROM gpu_analytics", conn)
+            df = pd.read_sql_query(f"SELECT * FROM {TABLE_NAME}", conn)
     except Exception as error:
         raise HTTPException(
             status_code=500,
@@ -64,18 +65,16 @@ def root() -> dict:
 
 
 @app.get("/health")
-def health_check() -> dict:
+def health() -> dict:
     """
     Verifica el estado de la API y de la base de datos.
     """
-    db_exists = DB_PATH.exists()
-
     return {
-        "status": "ok" if db_exists else "warning",
-        "database_exists": db_exists,
-        "database_path": str(DB_PATH)
+        "status": "ok" if DB_PATH.exists() else "warning",
+        "database_exists": DB_PATH.exists(),
+        "database_path": str(DB_PATH),
+        "table_name": TABLE_NAME,
     }
-
 
 @app.get("/gpus")
 def get_gpus(
