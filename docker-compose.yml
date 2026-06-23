@@ -1,0 +1,38 @@
+services:
+  api:
+    build: .
+    container_name: gpu_market_api
+    command: >
+      sh -c "python -m etl.pipeline &&
+             uvicorn api.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - GPU_CSV_PATH=data/raw/gpu_specs_v7.csv
+      - DATABASE_DIR=data/database
+      - PROCESSED_DIR=data/processed
+      - INVENTORY_DB_PATH=data/database/inventario_tienda.db
+      - FINAL_DB_PATH=data/database/gpu_market_analytics.db
+      - GPU_INFO_API_URL=https://raw.githubusercontent.com/voidful/gpu-info-api/gpu-data/gpu.json
+      - EXCHANGE_RATE_API_URL=https://mindicador.cl/api/dolar
+      - LOG_LEVEL=INFO
+
+  dashboard:
+    build: .
+    container_name: gpu_market_dashboard
+    command: >
+      sh -c "python -m etl.pipeline &&
+             streamlit run dashboards/app.py --server.address=0.0.0.0 --server.port=8501"
+    ports:
+      - "8501:8501"
+    environment:
+      - GPU_CSV_PATH=data/raw/gpu_specs_v7.csv
+      - DATABASE_DIR=data/database
+      - PROCESSED_DIR=data/processed
+      - INVENTORY_DB_PATH=data/database/inventario_tienda.db
+      - FINAL_DB_PATH=data/database/gpu_market_analytics.db
+      - GPU_INFO_API_URL=https://raw.githubusercontent.com/voidful/gpu-info-api/gpu-data/gpu.json
+      - EXCHANGE_RATE_API_URL=https://mindicador.cl/api/dolar
+      - LOG_LEVEL=INFO
+    depends_on:
+      - api

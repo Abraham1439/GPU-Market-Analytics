@@ -1,0 +1,17 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+.git/
+.github/
+
+.env
+
+data/database/*.db
+data/processed/*.csv
+data/processed/*.xlsx
+
+.DS_Store
+Thumbs.db
