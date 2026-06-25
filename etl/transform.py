@@ -113,6 +113,12 @@ def prepare_csv_specs(df_csv: pd.DataFrame) -> pd.DataFrame:
 
     for col in numeric_columns:
         df[col] = clean_numeric_column(df[col])
+        
+    # En el dataset de Kaggle, memSize viene expresado en GB.
+    # Como internamente usamos memoria_mb y luego memoria_gb,
+    # convertimos primero de GB a MB para mantener consistencia.
+    if df["memoria_mb"].dropna().median() <= 128:
+        df["memoria_mb"] = df["memoria_mb"] * 1024
 
     df["marca"] = df["marca"].astype(str).str.strip()
     df["modelo"] = df["modelo"].astype(str).str.strip()
