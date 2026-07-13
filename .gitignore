@@ -16,6 +16,13 @@ data/database/*.db
 data/processed/*.csv
 data/processed/*.xlsx
 
+# Modelos y métricas generados por entrenamiento (se regeneran con
+# python -m models.train_regression / train_classification / train_clustering)
+models/artifacts/*.pkl
+models/artifacts/*.json
+models/artifacts/comparison_table.csv
+models/artifacts/figures/*.png
+
 # Sistema operativo
 .DS_Store
 Thumbs.db
