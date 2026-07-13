@@ -285,7 +285,7 @@ pytest -v
 Resultado esperado:
 
 ```text
-17 passed
+23 passed
 ```
 
 Las pruebas validan:
@@ -308,6 +308,7 @@ feature/3-api-fastapi
 feature/4-tests
 feature/5-docker
 feature/6-documentacion
+feature/7-machine-learning
 ```
 
 Cada rama fue integrada a `main` mediante Pull Request, permitiendo evidenciar trabajo colaborativo, revisión de cambios, commits claros y merges controlados.
