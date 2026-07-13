@@ -5,11 +5,11 @@ Parte nueva del proyecto agregada para la Evaluación Final Transversal
 
 | Archivo | Modelo | Tipo | Target |
 |---|---|---|---|
-| `train_regression.py` | Predicción de precio | Supervisado (regresión) | `precio_venta_clp` |
+| `train_regression.py` | Predicción de TDP (consumo eléctrico) | Supervisado (regresión) | `tdp_watts` |
 | `train_classification.py` | Predicción de gama | Supervisado (clasificación) | `gama` |
-| `train_clustering.py` | Segmentación de mercado | No supervisado |  |
-| `model_utils.py` | Utilidades compartidas (split, preprocesamiento, guardado) |  |  |
-| `evaluate.py` | Comparación de métricas + gráficos para informe y dashboard |  |  |
+| `train_clustering.py` | Segmentación de mercado | No supervisado | — |
+| `model_utils.py` | Utilidades compartidas (split, preprocesamiento, guardado) | — | — |
+| `evaluate.py` | Comparación de métricas + gráficos para informe y dashboard | — | — |
 
 ## Cómo correr (una vez implementado)
 
@@ -34,4 +34,4 @@ Los 3 modelos están completos y entrenados contra el dataset real (120 GPUs). R
 | Clasificación (gama) | Accuracy / F1 macro | 0.75 / 0.74 (Logistic Regression) |
 | Clustering (mercado) | Silhouette (K=2) | 0.53 |
 
-Cada script documenta en su docstring decisiones de diseño importantes tomadas durante el desarrollo (ej. por qué se cambió el target de regresión de `precio_venta_clp` a `tdp_watts`, por qué `chip_gpu` se excluye de las features). Léelas antes de la presentación son buen material para responder preguntas del profesor.
+> **Nota:** el target original de regresión era `precio_venta_clp`, pero se reemplazó por `tdp_watts` al detectarse que el precio se genera aleatoriamente en `etl/create_inventory.py` (sin relación con las specs de la GPU). Ver docstring de `model_utils.py` para el detalle completo.
