@@ -84,6 +84,31 @@ data/database/gpu_market_analytics.db
 data/processed/gpu_market_analytics.csv
 ```
 
+## 4.1 Entrenar los modelos de Machine Learning
+
+Necesario para que funcionen los endpoints `/predict/*` de la API y la pestaña "Machine Learning" del dashboard.
+
+```powershell
+python -m models.train_regression
+python -m models.train_classification
+python -m models.train_clustering
+```
+
+Opcional — genera la tabla comparativa y los gráficos consolidados:
+
+```powershell
+python -m models.evaluate
+```
+
+Artefactos generados (no se versionan en Git, se regeneran con estos comandos):
+
+```text
+models/artifacts/regression_model.pkl
+models/artifacts/classification_model.pkl
+models/artifacts/clustering_model.pkl
+models/artifacts/*_metrics.json
+```
+
 ## 5. Ejecutar API localmente
 
 ```powershell
@@ -129,12 +154,14 @@ pytest -v
 Resultado esperado:
 
 ```text
-17 passed
+23 passed
 ```
 
 ## 8. Despliegue con Docker
 
 Docker permite ejecutar la API y el dashboard sin instalar manualmente todas las dependencias en el sistema anfitrión.
+
+Cada contenedor, al iniciar, ejecuta automáticamente el pipeline ETL y entrena los 3 modelos de ML antes de levantar el servicio (ver `docker-compose.yml`). No es necesario correr `python -m models.train_*` manualmente cuando se usa Docker — solo al ejecutar el proyecto de forma local sin contenedores (paso 4.1).
 
 ### Construir y levantar contenedores
 

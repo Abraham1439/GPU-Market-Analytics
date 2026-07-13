@@ -4,6 +4,9 @@ services:
     container_name: gpu_market_api
     command: >
       sh -c "python -m etl.pipeline &&
+             python -m models.train_regression &&
+             python -m models.train_classification &&
+             python -m models.train_clustering &&
              uvicorn api.main:app --host 0.0.0.0 --port 8000"
     ports:
       - "8000:8000"
@@ -22,6 +25,9 @@ services:
     container_name: gpu_market_dashboard
     command: >
       sh -c "python -m etl.pipeline &&
+             python -m models.train_regression &&
+             python -m models.train_classification &&
+             python -m models.train_clustering &&
              streamlit run dashboards/app.py --server.address=0.0.0.0 --server.port=8501"
     ports:
       - "8501:8501"

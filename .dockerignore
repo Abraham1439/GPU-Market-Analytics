@@ -13,5 +13,10 @@ data/database/*.db
 data/processed/*.csv
 data/processed/*.xlsx
 
+models/artifacts/*.pkl
+models/artifacts/*.json
+models/artifacts/comparison_table.csv
+models/artifacts/figures/*.png
+
 .DS_Store
 Thumbs.db
