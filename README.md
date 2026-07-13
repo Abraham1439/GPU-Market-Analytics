@@ -2,13 +2,13 @@
 
 ## Descripción del proyecto
 
-GPU Market Analytics es una solución de análisis de datos end-to-end orientada al estudio de tarjetas gráficas. El proyecto integra información técnica, precios, stock simulado de tienda y conversión monetaria USD a CLP para construir una plataforma de análisis que permite observar el comportamiento del inventario, precios por marca, evolución por año y características técnicas de GPUs.
+GPU Market Analytics es una solución de análisis de datos end-to-end orientada al estudio de tarjetas gráficas. El proyecto integra información técnica, precios, stock simulado de tienda y conversión monetaria USD a CLP para construir una plataforma de análisis que permite observar el comportamiento del inventario, precios por marca, evolución por año y características técnicas de GPUs. Incluye además un portafolio de modelos de Machine Learning (regresión, clasificación y clustering) para automatizar predicciones sobre el catálogo.
 
-El sistema fue desarrollado como parte de una evaluación de Programación para la Ciencia de Datos, incorporando prácticas profesionales de desarrollo como uso de Git, ramas, Pull Requests, testing automatizado, dashboard interactivo, API REST y despliegue con Docker.
+El sistema fue desarrollado como parte de la Evaluación Final Transversal de Programación para la Ciencia de Datos, incorporando prácticas profesionales de desarrollo como uso de Git, ramas, Pull Requests, testing automatizado, dashboard interactivo, API REST, modelos de Machine Learning, integración continua (CI/CD) y despliegue con Docker.
 
 ## Objetivo general
 
-Construir una solución integral de análisis de datos que integre múltiples fuentes de información sobre tarjetas gráficas, aplique un pipeline ETL automatizado, almacene datos procesados en SQLite, exponga información mediante una API REST, visualice resultados en un dashboard interactivo y permita ejecutar el proyecto mediante Docker.
+Construir una solución integral de ciencia de datos que integre múltiples fuentes de información sobre tarjetas gráficas, aplique un pipeline ETL automatizado, entrene un portafolio de modelos de Machine Learning, almacene datos procesados en SQLite, exponga información y predicciones mediante una API REST, visualice resultados en un dashboard interactivo, valide cada cambio con integración continua y permita ejecutar el proyecto mediante Docker.
 
 ## Fuentes de datos utilizadas
 
@@ -45,7 +45,12 @@ CSV Kaggle + API GPU + SQLite Inventario + API Dólar
                          ↓
         Base SQLite final + CSV procesado
                          ↓
+         Portafolio de modelos ML (models/)
+     Regresión (TDP) · Clasificación (gama) · Clustering
+                         ↓
               API FastAPI + Dashboard Streamlit
+                         ↓
+                CI/CD (GitHub Actions)
                          ↓
                     Docker Compose
 ```
@@ -54,6 +59,10 @@ CSV Kaggle + API GPU + SQLite Inventario + API Dólar
 
 ```text
 GPU-Market-Analytics/
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 │
 ├── api/
 │   └── main.py
@@ -72,7 +81,8 @@ GPU-Market-Analytics/
 │   ├── manual_usuario.md
 │   ├── guia_despliegue.md
 │   ├── api.md
-│   └── testing.md
+│   ├── testing.md
+│   └── informe_ejecutivo.md
 │
 ├── etl/
 │   ├── create_inventory.py
@@ -81,9 +91,21 @@ GPU-Market-Analytics/
 │   ├── load.py
 │   └── pipeline.py
 │
+├── models/
+│   ├── model_utils.py
+│   ├── train_regression.py
+│   ├── train_classification.py
+│   ├── train_clustering.py
+│   ├── evaluate.py
+│   └── artifacts/
+│
+├── repo/
+│   └── README.md
+│
 ├── tests/
 │   ├── test_api.py
-│   └── test_etl.py
+│   ├── test_etl.py
+│   └── test_models_api.py
 │
 ├── .dockerignore
 ├── .env.example
@@ -102,6 +124,9 @@ GPU-Market-Analytics/
 * NumPy
 * Requests
 * SQLite
+* Scikit-learn
+* Joblib
+* Matplotlib / Seaborn
 * Streamlit
 * Plotly
 * FastAPI
@@ -109,6 +134,7 @@ GPU-Market-Analytics/
 * Pytest
 * Docker
 * Docker Compose
+* GitHub Actions (CI/CD)
 * Git y GitHub
 
 ## Instalación local
@@ -168,6 +194,21 @@ data/database/inventario_tienda.db
 data/database/gpu_market_analytics.db
 data/processed/gpu_market_analytics.csv
 ```
+
+## Entrenamiento de modelos ML
+
+Con la base de datos final ya generada por el pipeline ETL, se entrena el portafolio de modelos y se generan las métricas y gráficos comparativos:
+
+```powershell
+python -m models.train_regression
+python -m models.train_classification
+python -m models.train_clustering
+python -m models.evaluate
+```
+
+Los tres primeros scripts entrenan cada modelo y guardan el `.pkl` y las métricas (`*_metrics.json`) en `models/artifacts/`. El último script (`evaluate.py`) lee esas métricas ya guardadas, genera `comparison_table.csv` y los gráficos comparativos en `models/artifacts/figures/`.
+
+> Estos archivos no están versionados en Git (ver `.gitignore`), por lo que este paso es obligatorio después de clonar el repositorio para que la API (`/predict/*`) y el dashboard puedan usarlos.
 
 ## Ejecución de la API
 
@@ -244,7 +285,7 @@ pytest -v
 Resultado esperado:
 
 ```text
-17 passed
+23 passed
 ```
 
 Las pruebas validan:
@@ -267,6 +308,7 @@ feature/3-api-fastapi
 feature/4-tests
 feature/5-docker
 feature/6-documentacion
+feature/7-machine-learning
 ```
 
 Cada rama fue integrada a `main` mediante Pull Request, permitiendo evidenciar trabajo colaborativo, revisión de cambios, commits claros y merges controlados.
@@ -300,11 +342,12 @@ Ubicación:
 dashboards/app.py
 ```
 
-Incluye tres vistas:
+Incluye cuatro vistas:
 
 * Vista ejecutiva.
 * Vista técnica.
 * Vista operativa.
+* Machine Learning (regresión, clasificación y clustering, con predicción interactiva).
 
 ### API REST
 
@@ -314,7 +357,33 @@ Ubicación:
 api/main.py
 ```
 
-Permite consultar los datos procesados mediante endpoints HTTP.
+Permite consultar los datos procesados y obtener predicciones de los modelos ML mediante endpoints HTTP (`/predict/tdp`, `/predict/gama`, `/clusters/summary`, `/clusters/gpus`, `/models/info`). Ver `docs/api.md` para el detalle completo.
+
+### Modelos de Machine Learning
+
+Ubicación:
+
+```text
+models/
+```
+
+Portafolio de 3 modelos entrenados sobre el dataset final:
+
+* **Regresión**: predicción de consumo eléctrico (`tdp_watts`) a partir de specs técnicas.
+* **Clasificación**: predicción de gama (`gama`) a partir de specs + precio.
+* **Clustering**: segmentación no supervisada del mercado (K-Means).
+
+Cada script (`train_regression.py`, `train_classification.py`, `train_clustering.py`) documenta en su docstring las decisiones de diseño tomadas, incluyendo limitaciones de los datos detectadas durante el desarrollo (ver `models/README.md`).
+
+### CI/CD
+
+Ubicación:
+
+```text
+.github/workflows/ci.yml
+```
+
+En cada push o Pull Request a `main`/`develop`, GitHub Actions ejecuta automáticamente el pipeline ETL, entrena los 3 modelos, corre el testing completo (`pytest`) y valida que la imagen Docker compile correctamente, antes de permitir integrar los cambios.
 
 ### Docker
 

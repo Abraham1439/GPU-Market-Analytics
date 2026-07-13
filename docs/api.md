@@ -84,7 +84,13 @@ Devuelve información general de la API, versión y endpoints disponibles.
     "/resumen",
     "/marcas",
     "/top-precios",
-    "/inventario"
+    "/inventario",
+    "/gamas",
+    "/predict/tdp",
+    "/predict/gama",
+    "/clusters/summary",
+    "/clusters/gpus",
+    "/models/info"
   ]
 }
 ```
@@ -331,6 +337,168 @@ Entusiasta
 ### Uso en el proyecto
 
 Permite analizar cómo se distribuye el inventario según segmento de producto.
+
+## Endpoints de Machine Learning
+
+Estos endpoints requieren que los modelos hayan sido entrenados previamente:
+
+```powershell
+python -m models.train_regression
+python -m models.train_classification
+python -m models.train_clustering
+```
+
+Si no se han entrenado, la API responde con error 404 indicando qué comando ejecutar.
+
+## POST /predict/tdp
+
+### URL
+
+```text
+http://127.0.0.1:8000/predict/tdp
+```
+
+### Descripción
+
+Predice el consumo eléctrico (TDP, en watts) de una GPU a partir de sus especificaciones técnicas, usando el mejor modelo de regresión entrenado (Random Forest, R² = 0.87 en el set de test).
+
+### Body de ejemplo
+
+```json
+{
+  "marca": "NVIDIA",
+  "tipo_memoria": "GDDR6",
+  "bus_interfaz": "PCIe 4.0 x16",
+  "memoria_gb": 8.0,
+  "bus_memoria_bits": 256.0,
+  "gpu_clock_mhz": 1500.0,
+  "mem_clock_mhz": 14000.0,
+  "shaders": 4000.0,
+  "tmu": 200.0,
+  "rop": 80.0,
+  "anio_lanzamiento": 2023
+}
+```
+
+### Ejemplo de respuesta
+
+```json
+{
+  "tdp_watts_predicho": 251.4,
+  "modelo_usado": "random_forest",
+  "mae_esperado_watts": 24.32,
+  "r2_modelo": 0.8708
+}
+```
+
+## POST /predict/gama
+
+### URL
+
+```text
+http://127.0.0.1:8000/predict/gama
+```
+
+### Descripción
+
+Predice la gama (Gama entrada / Gama media / Gama alta / Entusiasta) de una GPU a partir de sus specs técnicas y precio de venta. Si no se entrega `tdp_watts`, se estima automáticamente encadenando el modelo de regresión antes de clasificar.
+
+### Body de ejemplo (sin tdp_watts, se autoestima)
+
+```json
+{
+  "marca": "NVIDIA",
+  "tipo_memoria": "GDDR6",
+  "bus_interfaz": "PCIe 4.0 x16",
+  "memoria_gb": 8.0,
+  "bus_memoria_bits": 256.0,
+  "gpu_clock_mhz": 1500.0,
+  "mem_clock_mhz": 14000.0,
+  "shaders": 4000.0,
+  "tmu": 200.0,
+  "rop": 80.0,
+  "anio_lanzamiento": 2023,
+  "precio_venta_clp": 900000
+}
+```
+
+### Ejemplo de respuesta
+
+```json
+{
+  "gama_predicha": "Gama alta",
+  "tdp_watts_usado": 251.4,
+  "tdp_estimado_automaticamente": true,
+  "probabilidades_por_clase": {
+    "Entusiasta": 0.0001,
+    "Gama alta": 0.9999,
+    "Gama entrada": 0.0,
+    "Gama media": 0.0
+  },
+  "modelo_usado": "logistic_regression",
+  "accuracy_esperado": 0.75
+}
+```
+
+### Nota importante (transparencia del modelo)
+
+`gama` se define parcialmente por precio, y `precio_venta_clp` en este proyecto es simulado aleatoriamente (ver `etl/create_inventory.py`). Por eso el modelo incluye el precio como feature — es información de negocio disponible al catalogar un producto, no un dato "prohibido". Ver `models/train_classification.py` para el detalle completo de esta decisión.
+
+## GET /clusters/summary
+
+### URL
+
+```text
+http://127.0.0.1:8000/clusters/summary
+```
+
+### Descripción
+
+Devuelve el resultado del análisis de clustering (K-Means): K óptimo según silhouette score, tamaño de cada cluster, comparación cruzada contra las 4 gamas de negocio, y el perfil técnico promedio de cada cluster.
+
+### Uso en el proyecto
+
+Este endpoint respalda el hallazgo central del análisis de clustering: los grupos que forman las GPUs según sus specs reales **no coinciden** con las 4 gamas definidas manualmente, porque `gama` está dominada por el precio aleatorio del inventario simulado, no por las especificaciones técnicas.
+
+## GET /clusters/gpus
+
+### URL
+
+```text
+http://127.0.0.1:8000/clusters/gpus
+```
+
+### Descripción
+
+Aplica el modelo de clustering entrenado sobre el inventario actual y devuelve a qué cluster pertenece cada GPU.
+
+### Parámetros opcionales
+
+| Parámetro | Tipo    | Descripción                          |
+| --------- | ------- | ------------------------------------- |
+| `cluster` | integer | Filtra solo las GPUs de ese cluster. |
+
+### Ejemplos
+
+```text
+http://127.0.0.1:8000/clusters/gpus
+```
+
+```text
+http://127.0.0.1:8000/clusters/gpus?cluster=1
+```
+
+## GET /models/info
+
+### URL
+
+```text
+http://127.0.0.1:8000/models/info
+```
+
+### Descripción
+
+Devuelve un resumen consolidado del estado y desempeño de los 3 modelos del portafolio ML (regresión, clasificación, clustering). Útil para poblar la sección de ML del dashboard y para el informe técnico ejecutivo.
 
 ## Pruebas desde Swagger
 
